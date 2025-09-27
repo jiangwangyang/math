@@ -2,6 +2,8 @@ package com.github.jiangwangyang.math;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
+import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.IntStream;
 
@@ -9,24 +11,26 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class DoubleArrayTest {
 
-    @Test
-    public void testFromArrayAndMissing() {
-        Double[] array = IntStream.range(0, 1000)
+    public static Double[] randomArray(int length, int rate) {
+        return IntStream.range(0, length)
                 .mapToObj(i -> {
-                    if (ThreadLocalRandom.current().nextInt(100) < 50) {
+                    if (ThreadLocalRandom.current().nextInt(100) < rate) {
                         return null;
                     }
                     return Double.valueOf(i);
                 })
                 .toArray(Double[]::new);
+    }
+
+    @Test
+    public void testFromValueAndMissing() {
+        Double[] array = randomArray(1000, 50);
         double[] valueArray = new double[array.length];
         boolean[] missingArray = new boolean[array.length];
-        int size = 0;
+        int size = Arrays.stream(array).filter(Objects::nonNull).toArray().length;
         for (int i = 0; i < array.length; i++) {
             if (array[i] != null) {
                 valueArray[i] = array[i];
-                missingArray[i] = false;
-                size++;
             } else {
                 missingArray[i] = true;
             }
@@ -49,20 +53,8 @@ public class DoubleArrayTest {
 
     @Test
     public void testFromArray() {
-        Double[] array = IntStream.range(0, 1000)
-                .mapToObj(i -> {
-                    if (ThreadLocalRandom.current().nextInt(100) < 50) {
-                        return null;
-                    }
-                    return Double.valueOf(i);
-                })
-                .toArray(Double[]::new);
-        int size = 0;
-        for (Double v : array) {
-            if (v != null) {
-                size++;
-            }
-        }
+        Double[] array = randomArray(1000, 50);
+        int size = Arrays.stream(array).filter(Objects::nonNull).toArray().length;
         DoubleArray doubleArray = DoubleArray.fromArray(array);
         for (int i = 0; i < array.length; i++) {
             if (array[i] != null) {

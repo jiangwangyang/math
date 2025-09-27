@@ -10,6 +10,9 @@ import java.util.stream.Stream;
 
 public class DateUtil {
 
+    private DateUtil() {
+    }
+
     public static List<LocalDate> rangeYear(Year startYear, Year endYear) {
         return IntStream.range(startYear.getValue(), endYear.getValue())
                 .mapToObj(y -> LocalDate.of(y, 1, 1))
