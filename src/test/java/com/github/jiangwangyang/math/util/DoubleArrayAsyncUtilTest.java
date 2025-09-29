@@ -24,7 +24,7 @@ public class DoubleArrayAsyncUtilTest {
     @Test
     void testApply() {
         Double[] a = DoubleArrayTest.randomArray(1000, 50);
-        DoubleArray r = DoubleArrayAsyncUtil.apply(Double::sum, () -> DoubleArray.fromArray(a), 1.0).get();
+        DoubleArray r = DoubleArrayAsyncUtil.apply(x -> x + 1.0, () -> DoubleArray.fromArray(a)).get();
         for (int i = 0; i < a.length; i++) {
             if (a[i] == null) {
                 assertThat(r.get(i)).isNull();

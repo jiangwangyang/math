@@ -3,6 +3,7 @@ package com.github.jiangwangyang.math.util;
 import com.github.jiangwangyang.math.DoubleArray;
 
 import java.util.function.DoubleBinaryOperator;
+import java.util.function.DoubleUnaryOperator;
 
 public class DoubleArrayUtil {
 
@@ -16,23 +17,19 @@ public class DoubleArrayUtil {
         double[] value = new double[a.length()];
         boolean[] missing = new boolean[a.length()];
         for (int i = 0; i < a.length(); i++) {
-            if (a.isMissing(i)) {
-                value[i] = defaultValue;
-            } else {
-                value[i] = a.getValue(i);
-            }
+            value[i] = a.getValueOrElse(i, defaultValue);
         }
         return DoubleArray.fromValueAndMissing(value, missing);
     }
 
-    public static DoubleArray apply(DoubleBinaryOperator operator, DoubleArray a, double b) {
+    public static DoubleArray apply(DoubleUnaryOperator operator, DoubleArray a) {
         double[] value = new double[a.length()];
         boolean[] missing = new boolean[a.length()];
         for (int i = 0; i < a.length(); i++) {
             if (a.isMissing(i)) {
                 missing[i] = true;
             } else {
-                value[i] = operator.applyAsDouble(a.getValue(i), b);
+                value[i] = operator.applyAsDouble(a.getValue(i));
             }
         }
         return DoubleArray.fromValueAndMissing(value, missing);

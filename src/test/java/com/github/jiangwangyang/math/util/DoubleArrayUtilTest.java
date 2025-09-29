@@ -26,7 +26,7 @@ public class DoubleArrayUtilTest {
     void testApply() {
         Double[] array = DoubleArrayTest.randomArray(1000, 50);
         DoubleArray a = DoubleArray.fromArray(array);
-        DoubleArray r = DoubleArrayUtil.apply(Double::sum, a, 1.0);
+        DoubleArray r = DoubleArrayUtil.apply(x -> x + 1.0, a);
         for (int i = 0; i < array.length; i++) {
             if (array[i] == null) {
                 assertThat(r.get(i)).isNull();
