@@ -88,7 +88,20 @@ public final class DoubleArray implements Iterable<Double> {
         return values[rank];
     }
 
-    public double getValue(int i, double defaultValue) {
+    public double getValue(int i) {
+        if (i < 0 || i >= length) {
+            throw new IndexOutOfBoundsException();
+        }
+        int w = i >>> 6;
+        long m = 1L << (i & 63);
+        if ((bitmap[w] & m) == 0) {
+            throw new IllegalArgumentException("index " + i + " is missing");
+        }
+        int rank = prefix[w] + Long.bitCount(bitmap[w] & (m - 1));
+        return values[rank];
+    }
+
+    public double getValueOrElse(int i, double defaultValue) {
         if (i < 0 || i >= length) {
             throw new IndexOutOfBoundsException();
         }

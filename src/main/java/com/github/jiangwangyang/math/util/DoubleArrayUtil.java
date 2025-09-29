@@ -16,7 +16,11 @@ public class DoubleArrayUtil {
         double[] value = new double[a.length()];
         boolean[] missing = new boolean[a.length()];
         for (int i = 0; i < a.length(); i++) {
-            value[i] = a.getValue(i, defaultValue);
+            if (a.isMissing(i)) {
+                value[i] = defaultValue;
+            } else {
+                value[i] = a.getValue(i);
+            }
         }
         return DoubleArray.fromValueAndMissing(value, missing);
     }
@@ -28,7 +32,7 @@ public class DoubleArrayUtil {
             if (a.isMissing(i)) {
                 missing[i] = true;
             } else {
-                value[i] = operator.applyAsDouble(a.getValue(i, Double.NaN), b);
+                value[i] = operator.applyAsDouble(a.getValue(i), b);
             }
         }
         return DoubleArray.fromValueAndMissing(value, missing);
@@ -44,7 +48,7 @@ public class DoubleArrayUtil {
             if (a.isMissing(i) || b.isMissing(i)) {
                 missing[i] = true;
             } else {
-                value[i] = operator.applyAsDouble(a.getValue(i, Double.NaN), b.getValue(i, Double.NaN));
+                value[i] = operator.applyAsDouble(a.getValue(i), b.getValue(i));
             }
         }
         return DoubleArray.fromValueAndMissing(value, missing);

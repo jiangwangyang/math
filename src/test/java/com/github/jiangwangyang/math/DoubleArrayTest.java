@@ -39,11 +39,12 @@ public class DoubleArrayTest {
         for (int i = 0; i < array.length; i++) {
             if (array[i] != null) {
                 assertThat(doubleArray.get(i)).isEqualTo(array[i]);
-                assertThat(doubleArray.getValue(i, 0.0)).isEqualTo(array[i]);
+                assertThat(doubleArray.getValue(i)).isEqualTo(array[i]);
+                assertThat(doubleArray.getValueOrElse(i, 0.0)).isEqualTo(array[i]);
                 assertThat(doubleArray.isMissing(i)).isFalse();
             } else {
                 assertThat(doubleArray.get(i)).isNull();
-                assertThat(doubleArray.getValue(i, 0.0)).isEqualTo(0.0);
+                assertThat(doubleArray.getValueOrElse(i, 0.0)).isEqualTo(0.0);
                 assertThat(doubleArray.isMissing(i)).isTrue();
             }
         }
@@ -59,11 +60,12 @@ public class DoubleArrayTest {
         for (int i = 0; i < array.length; i++) {
             if (array[i] != null) {
                 assertThat(doubleArray.get(i)).isEqualTo(array[i]);
-                assertThat(doubleArray.getValue(i, 0.0)).isEqualTo(array[i]);
+                assertThat(doubleArray.getValue(i)).isEqualTo(array[i]);
+                assertThat(doubleArray.getValueOrElse(i, 0.0)).isEqualTo(array[i]);
                 assertThat(doubleArray.isMissing(i)).isFalse();
             } else {
                 assertThat(doubleArray.get(i)).isNull();
-                assertThat(doubleArray.getValue(i, 0.0)).isEqualTo(0.0);
+                assertThat(doubleArray.getValueOrElse(i, 0.0)).isEqualTo(0.0);
                 assertThat(doubleArray.isMissing(i)).isTrue();
             }
         }
