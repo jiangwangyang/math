@@ -7,7 +7,7 @@ public final class FullDoubleArray implements DoubleArray {
 
     private final double[] value;
 
-    public FullDoubleArray(double[] value) {
+    FullDoubleArray(double[] value) {
         this.value = value;
     }
 
@@ -60,25 +60,13 @@ public final class FullDoubleArray implements DoubleArray {
         if (length() != other.length()) {
             throw new IllegalArgumentException("DoubleArray must have the same length");
         }
-        if (other instanceof FullDoubleArray) {
-            double[] value = new double[length()];
-            for (int i = 0; i < length(); i++) {
-                value[i] = operator.applyAsDouble(getValue(i), other.getValue(i));
-            }
-            return new FullDoubleArray(value);
+        if (!(other instanceof FullDoubleArray)) {
+            return other.zip(this, operator);
         }
         double[] value = new double[length()];
-        boolean[] missing = new boolean[length()];
         for (int i = 0; i < length(); i++) {
-            if (other.isMissing(i)) {
-                missing[i] = true;
-            } else {
-                value[i] = operator.applyAsDouble(getValue(i), other.getValue(i));
-            }
+            value[i] = operator.applyAsDouble(getValue(i), other.getValue(i));
         }
-        if (other instanceof CompressedDoubleArray) {
-            return CompressedDoubleArray.fromValueMissing(value, missing);
-        }
-        return DefaultDoubleArray.fromValueMissing(value, missing);
+        return new FullDoubleArray(value);
     }
 }

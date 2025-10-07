@@ -1,21 +1,8 @@
 package com.github.jiangwangyang.math;
 
-
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.IntStream;
+import static com.github.jiangwangyang.math.BaseTest.randomArray;
 
 public class PerformanceTest {
-
-    public static Double[] randomArray(int length, int rate) {
-        return IntStream.range(0, length)
-                .mapToObj(i -> {
-                    if (ThreadLocalRandom.current().nextInt(100) < rate) {
-                        return ThreadLocalRandom.current().nextDouble();
-                    }
-                    return null;
-                })
-                .toArray(Double[]::new);
-    }
 
     private static void testArray(int count, int length, int rate) {
         Double[] array = randomArray(length, rate);
@@ -34,7 +21,7 @@ public class PerformanceTest {
     }
 
     private static void testCompressedDoubleArray(int count, int length, int rate) {
-        DoubleArray doubleArray = CompressedDoubleArray.fromArray(randomArray(length, rate));
+        DoubleArray doubleArray = DoubleArray.compressFromArray(randomArray(length, rate));
         long start = System.currentTimeMillis();
         for (int i = 0; i < count; i++) {
             doubleArray = doubleArray.map(x -> x * 1.1);
@@ -44,7 +31,7 @@ public class PerformanceTest {
     }
 
     private static void testDefaultDoubleArray(int count, int length, int rate) {
-        DoubleArray doubleArray = DefaultDoubleArray.fromArray(randomArray(length, rate));
+        DoubleArray doubleArray = DoubleArray.fromArray(randomArray(length, rate));
         long start = System.currentTimeMillis();
         for (int i = 0; i < count; i++) {
             doubleArray = doubleArray.map(x -> x * 1.1);
@@ -54,7 +41,7 @@ public class PerformanceTest {
     }
 
     private static void testFullDoubleArray(int count, int length) {
-        DoubleArray doubleArray = DefaultDoubleArray.fromArray(randomArray(length, 100)).missingTo(0.0);
+        DoubleArray doubleArray = DoubleArray.fromArray(randomArray(length, 100));
         long start = System.currentTimeMillis();
         for (int i = 0; i < count; i++) {
             doubleArray = doubleArray.map(x -> x * 1.1);
@@ -64,18 +51,17 @@ public class PerformanceTest {
     }
 
     private static void test(int count, int length, int rate) {
+        System.out.println("======================================");
         testArray(count, length, rate);
         testCompressedDoubleArray(count, length, rate);
         testDefaultDoubleArray(count, length, rate);
-        if (rate == 100) {
-            testFullDoubleArray(count, length);
-        }
+        testFullDoubleArray(count, length);
     }
 
     public static void main(String[] args) {
-        test(100, 1000_000, 100);
-        test(10_000, 10_000, 100);
-        test(1000_000, 100, 100);
+        test(100, 1000_000, 90);
+        test(10_000, 10_000, 90);
+        test(1000_000, 100, 90);
     }
 
 }

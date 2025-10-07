@@ -1,7 +1,5 @@
 package com.github.jiangwangyang.math;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
 
@@ -11,42 +9,9 @@ public final class DefaultDoubleArray implements DoubleArray {
     private final boolean[] missing;
     private Integer size;
 
-    private DefaultDoubleArray(double[] value, boolean[] missing) {
+    DefaultDoubleArray(double[] value, boolean[] missing) {
         this.value = value;
         this.missing = missing;
-    }
-
-    public static DefaultDoubleArray fromValueMissing(double[] value, boolean[] missing) {
-        return new DefaultDoubleArray(value, missing);
-    }
-
-    public static DefaultDoubleArray fromList(List<Double> list) {
-        double[] value = new double[list.size()];
-        boolean[] missing = new boolean[list.size()];
-        for (int i = 0; i < list.size(); i++) {
-            if (list.get(i) == null) {
-                missing[i] = true;
-            } else {
-                value[i] = list.get(i);
-            }
-        }
-        return new DefaultDoubleArray(value, missing);
-    }
-
-    public static DefaultDoubleArray fromArray(Double[] array) {
-        return fromList(Arrays.asList(array));
-    }
-
-    public static DefaultDoubleArray fromDoubles(Double... doubles) {
-        return fromList(Arrays.asList(doubles));
-    }
-
-    public static DefaultDoubleArray fromArray(double[] array) {
-        return fromValueMissing(array, new boolean[array.length]);
-    }
-
-    public static DefaultDoubleArray fromValues(double... values) {
-        return fromValueMissing(values, new boolean[values.length]);
     }
 
     @Override
