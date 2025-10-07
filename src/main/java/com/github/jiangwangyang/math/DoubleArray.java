@@ -1,5 +1,7 @@
 package com.github.jiangwangyang.math;
 
+import org.jspecify.annotations.NonNull;
+
 import java.util.Iterator;
 import java.util.Spliterator;
 import java.util.Spliterators;
@@ -23,6 +25,7 @@ public interface DoubleArray extends Iterable<Double> {
     int length();
 
     @Override
+    @NonNull
     default Iterator<Double> iterator() {
         return new Iterator<>() {
             private int i = 0;

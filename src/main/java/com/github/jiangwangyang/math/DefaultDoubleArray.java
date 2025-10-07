@@ -71,7 +71,7 @@ public final class DefaultDoubleArray extends AbstractDoubleArray {
     }
 
     @Override
-    public DoubleArray missingTo(double value) {
+    public DefaultDoubleArray missingTo(double value) {
         if (size() == length()) {
             return this;
         }
@@ -83,7 +83,7 @@ public final class DefaultDoubleArray extends AbstractDoubleArray {
     }
 
     @Override
-    public DoubleArray map(DoubleUnaryOperator operator) {
+    public DefaultDoubleArray map(DoubleUnaryOperator operator) {
         double[] value = new double[length()];
         boolean[] missing = new boolean[length()];
         for (int i = 0; i < length(); i++) {
@@ -97,7 +97,7 @@ public final class DefaultDoubleArray extends AbstractDoubleArray {
     }
 
     @Override
-    public DoubleArray zip(DoubleArray other, DoubleBinaryOperator operator) {
+    public DefaultDoubleArray zip(DoubleArray other, DoubleBinaryOperator operator) {
         if (length() != other.length()) {
             throw new IllegalArgumentException("DoubleArray must have the same length");
         }
