@@ -1,147 +1,35 @@
 package com.github.jiangwangyang.math;
 
-import lombok.NonNull;
-
-import java.util.Arrays;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Spliterator;
-import java.util.function.Consumer;
+import java.util.Spliterators;
+import java.util.function.DoubleBinaryOperator;
+import java.util.function.DoubleUnaryOperator;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public final class DoubleArray implements Iterable<Double> {
+public interface DoubleArray extends Iterable<Double> {
 
-    private final double[] values;
-    private final long[] bitmap;
-    private final int[] prefix;
-    private final int length;
+    Double get(int i);
 
-    private DoubleArray(double[] values, long[] bitmap, int[] prefix, int length) {
-        this.values = values;
-        this.bitmap = bitmap;
-        this.prefix = prefix;
-        this.length = length;
-    }
+    double getValue(int i);
 
-    public static DoubleArray fromValueAndMissing(double[] value, boolean[] missing) {
-        if (value.length != missing.length) {
-            throw new IllegalArgumentException("missing[] length must match array[]");
-        }
-        int length = value.length;
-        double[] temp = new double[length];
-        long[] bitmap = new long[(length + 63) >>> 6];
-        int cnt = 0;
-        for (int i = 0; i < length; i++) {
-            if (!missing[i]) {
-                bitmap[i >>> 6] |= 1L << (i & 63);
-                temp[cnt++] = value[i];
-            }
-        }
-        double[] values = Arrays.copyOf(temp, cnt);
-        int words = bitmap.length;
-        int[] prefix = new int[words + 1];
-        for (int w = 0; w < words; w++) {
-            prefix[w + 1] = prefix[w] + Long.bitCount(bitmap[w]);
-        }
-        return new DoubleArray(values, bitmap, prefix, length);
-    }
+    double getValueOrElse(int i, double defaultValue);
 
-    public static DoubleArray fromList(List<Double> list) {
-        return fromIterator(list.iterator(), list.size());
-    }
+    boolean isMissing(int i);
 
-    public static DoubleArray fromArray(Double[] array) {
-        return fromIterator(Arrays.stream(array).iterator(), array.length);
-    }
+    int size();
 
-    private static DoubleArray fromIterator(Iterator<Double> iterator, int length) {
-        double[] temp = new double[length];
-        long[] bitmap = new long[(length + 63) >>> 6];
-        int cnt = 0;
-        for (int i = 0; i < length && iterator.hasNext(); i++) {
-            Double v = iterator.next();
-            if (v != null) {
-                bitmap[i >>> 6] |= 1L << (i & 63);
-                temp[cnt++] = v;
-            }
-        }
-        double[] values = Arrays.copyOf(temp, cnt);
-        int words = bitmap.length;
-        int[] prefix = new int[words + 1];
-        for (int w = 0; w < words; w++) {
-            prefix[w + 1] = prefix[w] + Long.bitCount(bitmap[w]);
-        }
-        return new DoubleArray(values, bitmap, prefix, length);
-    }
-
-    public Double get(int i) {
-        if (i < 0 || i >= length) {
-            throw new IndexOutOfBoundsException();
-        }
-        int w = i >>> 6;
-        long m = 1L << (i & 63);
-        if ((bitmap[w] & m) == 0) {
-            return null;
-        }
-        int rank = prefix[w] + Long.bitCount(bitmap[w] & (m - 1));
-        return values[rank];
-    }
-
-    public double getValue(int i) {
-        if (i < 0 || i >= length) {
-            throw new IndexOutOfBoundsException();
-        }
-        int w = i >>> 6;
-        long m = 1L << (i & 63);
-        if ((bitmap[w] & m) == 0) {
-            throw new IllegalArgumentException("index " + i + " is missing");
-        }
-        int rank = prefix[w] + Long.bitCount(bitmap[w] & (m - 1));
-        return values[rank];
-    }
-
-    public double getValueOrElse(int i, double defaultValue) {
-        if (i < 0 || i >= length) {
-            throw new IndexOutOfBoundsException();
-        }
-        int w = i >>> 6;
-        long m = 1L << (i & 63);
-        if ((bitmap[w] & m) == 0) {
-            return defaultValue;
-        }
-        int rank = prefix[w] + Long.bitCount(bitmap[w] & (m - 1));
-        return values[rank];
-    }
-
-    public boolean isMissing(int i) {
-        if (i < 0 || i >= length) {
-            throw new IndexOutOfBoundsException();
-        }
-        return (bitmap[i >>> 6] & (1L << (i & 63))) == 0;
-    }
-
-    public int size() {
-        return values.length;
-    }
-
-    public int length() {
-        return length;
-    }
-
-    public Stream<Double> stream() {
-        return StreamSupport.stream(spliterator(), false);
-    }
+    int length();
 
     @Override
-    @NonNull
-    public Iterator<Double> iterator() {
+    default Iterator<Double> iterator() {
         return new Iterator<>() {
             private int i = 0;
 
             @Override
             public boolean hasNext() {
-                return i < length;
+                return i < length();
             }
 
             @Override
@@ -152,12 +40,54 @@ public final class DoubleArray implements Iterable<Double> {
     }
 
     @Override
-    public void forEach(Consumer<? super Double> action) {
-        Iterable.super.forEach(action);
+    default Spliterator<Double> spliterator() {
+        return Spliterators.spliterator(this.iterator(), length(), 0);
     }
 
-    @Override
-    public Spliterator<Double> spliterator() {
-        return Iterable.super.spliterator();
+    default Stream<Double> stream() {
+        return StreamSupport.stream(spliterator(), false);
     }
+
+    default Stream<Double> parallelStream() {
+        return StreamSupport.stream(spliterator(), true);
+    }
+
+    DoubleArray missingTo(double value);
+
+    DoubleArray map(DoubleUnaryOperator operator);
+
+    DoubleArray zip(DoubleArray other, DoubleBinaryOperator operator);
+
+    default DoubleArray add(DoubleArray other) {
+        return zip(other, Double::sum);
+    }
+
+    default DoubleArray subtract(DoubleArray other) {
+        return zip(other, (a, b) -> a - b);
+    }
+
+    default DoubleArray multiply(DoubleArray other) {
+        return zip(other, (a, b) -> a * b);
+    }
+
+    default DoubleArray divide(DoubleArray other) {
+        return zip(other, (a, b) -> a / b);
+    }
+
+    default DoubleArray mod(DoubleArray other) {
+        return zip(other, (a, b) -> a % b);
+    }
+
+    default DoubleArray pow(DoubleArray other) {
+        return zip(other, Math::pow);
+    }
+
+    default DoubleArray root(DoubleArray other) {
+        return zip(other, (a, b) -> Math.pow(a, 1 / b));
+    }
+
+    default DoubleArray log(DoubleArray other) {
+        return zip(other, (a, b) -> Math.log(a) / Math.log(b));
+    }
+
 }

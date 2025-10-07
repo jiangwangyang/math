@@ -9,7 +9,7 @@ import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class DoubleArrayTest {
+public class DefaultDoubleArrayTest {
 
     public static Double[] randomArray(int length, int rate) {
         return IntStream.range(0, length)
@@ -23,7 +23,7 @@ public class DoubleArrayTest {
     }
 
     @Test
-    public void testFromValueAndMissing() {
+    public void testFromValueMissing() {
         Double[] array = randomArray(1000, 50);
         double[] valueArray = new double[array.length];
         boolean[] missingArray = new boolean[array.length];
@@ -35,7 +35,7 @@ public class DoubleArrayTest {
                 missingArray[i] = true;
             }
         }
-        DoubleArray doubleArray = DoubleArray.fromValueAndMissing(valueArray, missingArray);
+        DoubleArray doubleArray = DefaultDoubleArray.fromValueMissing(valueArray, missingArray);
         for (int i = 0; i < array.length; i++) {
             if (array[i] != null) {
                 assertThat(doubleArray.get(i)).isEqualTo(array[i]);
@@ -56,7 +56,7 @@ public class DoubleArrayTest {
     public void testFromArray() {
         Double[] array = randomArray(1000, 50);
         int size = Arrays.stream(array).filter(Objects::nonNull).toArray().length;
-        DoubleArray doubleArray = DoubleArray.fromArray(array);
+        DoubleArray doubleArray = DefaultDoubleArray.fromArray(array);
         for (int i = 0; i < array.length; i++) {
             if (array[i] != null) {
                 assertThat(doubleArray.get(i)).isEqualTo(array[i]);
@@ -71,6 +71,48 @@ public class DoubleArrayTest {
         }
         assertThat(doubleArray.size()).isEqualTo(size);
         assertThat(doubleArray.length()).isEqualTo(array.length);
+    }
+
+    @Test
+    public void testMissingTo() {
+        Double[] array = randomArray(1000, 50);
+        DoubleArray doubleArray = DefaultDoubleArray.fromArray(array).missingTo(0);
+        for (int i = 0; i < array.length; i++) {
+            if (array[i] == null) {
+                assertThat(doubleArray.get(i)).isEqualTo(0.0);
+            } else {
+                assertThat(doubleArray.get(i)).isEqualTo(array[i]);
+            }
+        }
+    }
+
+    @Test
+    public void testMap() {
+        Double[] array = randomArray(1000, 50);
+        DoubleArray doubleArray = DefaultDoubleArray.fromArray(array).map(x -> x + 1.0);
+        for (int i = 0; i < array.length; i++) {
+            if (array[i] == null) {
+                assertThat(doubleArray.get(i)).isNull();
+            } else {
+                assertThat(doubleArray.get(i)).isEqualTo(array[i] + 1.0);
+            }
+        }
+    }
+
+    @Test
+    public void testZip() {
+        Double[] array1 = randomArray(1000, 50);
+        Double[] array2 = randomArray(1000, 50);
+        DoubleArray a = DefaultDoubleArray.fromArray(array1);
+        DoubleArray b = DefaultDoubleArray.fromArray(array2);
+        DoubleArray doubleArray = a.zip(b, Double::sum);
+        for (int i = 0; i < 1000; i++) {
+            if (array1[i] == null || array2[i] == null) {
+                assertThat(doubleArray.get(i)).isNull();
+            } else {
+                assertThat(doubleArray.get(i)).isEqualTo(array1[i] + array2[i]);
+            }
+        }
     }
 
 }
