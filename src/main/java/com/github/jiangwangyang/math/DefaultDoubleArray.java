@@ -5,53 +5,32 @@ import java.util.List;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
 
-public final class DefaultDoubleArray extends AbstractDoubleArray {
+public final class DefaultDoubleArray implements DoubleArray {
 
-    private DefaultDoubleArray(double[] values, long[] bitmap, int[] prefix, int length) {
-        super(values, bitmap, prefix, length);
+    private final double[] value;
+    private final boolean[] missing;
+    private Integer size;
+
+    private DefaultDoubleArray(double[] value, boolean[] missing) {
+        this.value = value;
+        this.missing = missing;
     }
 
     public static DefaultDoubleArray fromValueMissing(double[] value, boolean[] missing) {
-        if (value.length != missing.length) {
-            throw new IllegalArgumentException("missing[] length must match array[]");
-        }
-        int length = value.length;
-        double[] temp = new double[length];
-        long[] bitmap = new long[(length + 63) >>> 6];
-        int cnt = 0;
-        for (int i = 0; i < length; i++) {
-            if (!missing[i]) {
-                bitmap[i >>> 6] |= 1L << (i & 63);
-                temp[cnt++] = value[i];
-            }
-        }
-        double[] values = Arrays.copyOf(temp, cnt);
-        int words = bitmap.length;
-        int[] prefix = new int[words + 1];
-        for (int w = 0; w < words; w++) {
-            prefix[w + 1] = prefix[w] + Long.bitCount(bitmap[w]);
-        }
-        return new DefaultDoubleArray(values, bitmap, prefix, length);
+        return new DefaultDoubleArray(value, missing);
     }
 
     public static DefaultDoubleArray fromList(List<Double> list) {
-        double[] temp = new double[list.size()];
-        long[] bitmap = new long[(list.size() + 63) >>> 6];
-        int cnt = 0;
+        double[] value = new double[list.size()];
+        boolean[] missing = new boolean[list.size()];
         for (int i = 0; i < list.size(); i++) {
-            Double v = list.get(i);
-            if (v != null) {
-                bitmap[i >>> 6] |= 1L << (i & 63);
-                temp[cnt++] = v;
+            if (list.get(i) == null) {
+                missing[i] = true;
+            } else {
+                value[i] = list.get(i);
             }
         }
-        double[] values = Arrays.copyOf(temp, cnt);
-        int words = bitmap.length;
-        int[] prefix = new int[words + 1];
-        for (int w = 0; w < words; w++) {
-            prefix[w + 1] = prefix[w] + Long.bitCount(bitmap[w]);
-        }
-        return new DefaultDoubleArray(values, bitmap, prefix, list.size());
+        return new DefaultDoubleArray(value, missing);
     }
 
     public static DefaultDoubleArray fromArray(Double[] array) {
@@ -71,15 +50,60 @@ public final class DefaultDoubleArray extends AbstractDoubleArray {
     }
 
     @Override
-    public DefaultDoubleArray missingTo(double value) {
-        if (size() == length()) {
-            return this;
+    public Double get(int i) {
+        return missing[i] ? null : value[i];
+    }
+
+    @Override
+    public double getValue(int i) {
+        if (missing[i]) {
+            throw new IllegalArgumentException("index " + i + " is missing");
         }
+        return value[i];
+    }
+
+    @Override
+    public double getValueOrElse(int i, double defaultValue) {
+        return missing[i] ? defaultValue : value[i];
+    }
+
+    @Override
+    public boolean isMissing(int i) {
+        return missing[i];
+    }
+
+    @Override
+    public int size() {
+        if (size != null) {
+            return size;
+        }
+        synchronized (this) {
+            if (size != null) {
+                return size;
+            }
+            int sizeValue = 0;
+            for (int i = 0; i < value.length; i++) {
+                if (!missing[i]) {
+                    sizeValue++;
+                }
+            }
+            size = sizeValue;
+            return size;
+        }
+    }
+
+    @Override
+    public int length() {
+        return value.length;
+    }
+
+    @Override
+    public FullDoubleArray missingTo(double value) {
         double[] newValueArray = new double[length()];
         for (int i = 0; i < length(); i++) {
             newValueArray[i] = getValueOrElse(i, value);
         }
-        return DefaultDoubleArray.fromValueMissing(newValueArray, new boolean[length()]);
+        return new FullDoubleArray(newValueArray);
     }
 
     @Override
@@ -93,7 +117,7 @@ public final class DefaultDoubleArray extends AbstractDoubleArray {
                 value[i] = operator.applyAsDouble(getValue(i));
             }
         }
-        return DefaultDoubleArray.fromValueMissing(value, missing);
+        return new DefaultDoubleArray(value, missing);
     }
 
     @Override
@@ -110,7 +134,6 @@ public final class DefaultDoubleArray extends AbstractDoubleArray {
                 value[i] = operator.applyAsDouble(getValue(i), other.getValue(i));
             }
         }
-        return DefaultDoubleArray.fromValueMissing(value, missing);
+        return new DefaultDoubleArray(value, missing);
     }
-
 }

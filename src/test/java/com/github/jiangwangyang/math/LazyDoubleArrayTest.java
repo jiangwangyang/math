@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.github.jiangwangyang.math.DefaultDoubleArrayTest.randomArray;
+import static com.github.jiangwangyang.math.PerformanceTest.randomArray;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class LazyDoubleArrayTest {
@@ -24,7 +24,7 @@ public class LazyDoubleArrayTest {
                 missingArray[i] = true;
             }
         }
-        DoubleArray doubleArray = LazyDoubleArray.of(DefaultDoubleArray.fromValueMissing(valueArray, missingArray));
+        DoubleArray doubleArray = LazyDoubleArray.of(CompressedDoubleArray.fromValueMissing(valueArray, missingArray));
         for (int i = 0; i < array.length; i++) {
             if (array[i] != null) {
                 assertThat(doubleArray.get(i)).isEqualTo(array[i]);
@@ -45,7 +45,7 @@ public class LazyDoubleArrayTest {
     public void testFromArray() {
         Double[] array = randomArray(1000, 50);
         int size = Arrays.stream(array).filter(Objects::nonNull).toArray().length;
-        DoubleArray doubleArray = LazyDoubleArray.of(DefaultDoubleArray.fromArray(array));
+        DoubleArray doubleArray = LazyDoubleArray.of(CompressedDoubleArray.fromArray(array));
         for (int i = 0; i < array.length; i++) {
             if (array[i] != null) {
                 assertThat(doubleArray.get(i)).isEqualTo(array[i]);
@@ -65,7 +65,7 @@ public class LazyDoubleArrayTest {
     @Test
     public void testMissingTo() {
         Double[] array = randomArray(1000, 50);
-        DoubleArray doubleArray = LazyDoubleArray.of(DefaultDoubleArray.fromArray(array).missingTo(0));
+        DoubleArray doubleArray = LazyDoubleArray.of(CompressedDoubleArray.fromArray(array).missingTo(0));
         for (int i = 0; i < array.length; i++) {
             if (array[i] == null) {
                 assertThat(doubleArray.get(i)).isEqualTo(0.0);
@@ -78,7 +78,7 @@ public class LazyDoubleArrayTest {
     @Test
     public void testMap() {
         Double[] array = randomArray(1000, 50);
-        DoubleArray doubleArray = LazyDoubleArray.of(DefaultDoubleArray.fromArray(array).map(x -> x + 1.0));
+        DoubleArray doubleArray = LazyDoubleArray.of(CompressedDoubleArray.fromArray(array).map(x -> x + 1.0));
         for (int i = 0; i < array.length; i++) {
             if (array[i] == null) {
                 assertThat(doubleArray.get(i)).isNull();
@@ -92,8 +92,8 @@ public class LazyDoubleArrayTest {
     public void testZip() {
         Double[] array1 = randomArray(1000, 50);
         Double[] array2 = randomArray(1000, 50);
-        DoubleArray a = LazyDoubleArray.of(DefaultDoubleArray.fromArray(array1));
-        DoubleArray b = LazyDoubleArray.of(DefaultDoubleArray.fromArray(array2));
+        DoubleArray a = LazyDoubleArray.of(CompressedDoubleArray.fromArray(array1));
+        DoubleArray b = LazyDoubleArray.of(CompressedDoubleArray.fromArray(array2));
         DoubleArray doubleArray = a.zip(b, Double::sum);
         for (int i = 0; i < 1000; i++) {
             if (array1[i] == null || array2[i] == null) {
@@ -108,7 +108,7 @@ public class LazyDoubleArrayTest {
     public void testLazy() {
         AtomicInteger count = new AtomicInteger(0);
         Double[] array = randomArray(1000, 50);
-        DoubleArray a = LazyDoubleArray.of(DefaultDoubleArray.fromArray(array));
+        DoubleArray a = LazyDoubleArray.of(CompressedDoubleArray.fromArray(array));
         DoubleArray b = a.map(x -> {
             count.incrementAndGet();
             return x + 1.0;

@@ -8,7 +8,7 @@ import java.util.Objects;
 import static com.github.jiangwangyang.math.PerformanceTest.randomArray;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class DefaultDoubleArrayTest {
+public class CompressedDoubleArrayTest {
 
     @Test
     public void testFromValueMissing() {
@@ -23,7 +23,7 @@ public class DefaultDoubleArrayTest {
                 missingArray[i] = true;
             }
         }
-        DoubleArray doubleArray = DefaultDoubleArray.fromValueMissing(valueArray, missingArray);
+        DoubleArray doubleArray = CompressedDoubleArray.fromValueMissing(valueArray, missingArray);
         for (int i = 0; i < array.length; i++) {
             if (array[i] != null) {
                 assertThat(doubleArray.get(i)).isEqualTo(array[i]);
@@ -44,7 +44,7 @@ public class DefaultDoubleArrayTest {
     public void testFromArray() {
         Double[] array = randomArray(1000, 50);
         int size = Arrays.stream(array).filter(Objects::nonNull).toArray().length;
-        DoubleArray doubleArray = DefaultDoubleArray.fromArray(array);
+        DoubleArray doubleArray = CompressedDoubleArray.fromArray(array);
         for (int i = 0; i < array.length; i++) {
             if (array[i] != null) {
                 assertThat(doubleArray.get(i)).isEqualTo(array[i]);
@@ -64,7 +64,7 @@ public class DefaultDoubleArrayTest {
     @Test
     public void testMissingTo() {
         Double[] array = randomArray(1000, 50);
-        DoubleArray doubleArray = DefaultDoubleArray.fromArray(array).missingTo(0);
+        DoubleArray doubleArray = CompressedDoubleArray.fromArray(array).missingTo(0);
         for (int i = 0; i < array.length; i++) {
             if (array[i] == null) {
                 assertThat(doubleArray.get(i)).isEqualTo(0.0);
@@ -77,7 +77,7 @@ public class DefaultDoubleArrayTest {
     @Test
     public void testMap() {
         Double[] array = randomArray(1000, 50);
-        DoubleArray doubleArray = DefaultDoubleArray.fromArray(array).map(x -> x + 1.0);
+        DoubleArray doubleArray = CompressedDoubleArray.fromArray(array).map(x -> x + 1.0);
         for (int i = 0; i < array.length; i++) {
             if (array[i] == null) {
                 assertThat(doubleArray.get(i)).isNull();
@@ -91,8 +91,8 @@ public class DefaultDoubleArrayTest {
     public void testZip() {
         Double[] array1 = randomArray(1000, 50);
         Double[] array2 = randomArray(1000, 50);
-        DoubleArray a = DefaultDoubleArray.fromArray(array1);
-        DoubleArray b = DefaultDoubleArray.fromArray(array2);
+        DoubleArray a = CompressedDoubleArray.fromArray(array1);
+        DoubleArray b = CompressedDoubleArray.fromArray(array2);
         DoubleArray doubleArray = a.zip(b, Double::sum);
         for (int i = 0; i < 1000; i++) {
             if (array1[i] == null || array2[i] == null) {
